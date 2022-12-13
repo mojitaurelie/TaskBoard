@@ -7,7 +7,7 @@ Board::Board(QString name)
 
 Board::~Board()
 {
-    for (int i = 0; i < tasks.count(); i++)
+    for (uint16_t i = 0; i < tasks.count(); i++)
     {
         Task *t = tasks.takeAt(i);
         delete t;
@@ -24,9 +24,9 @@ void Board::add(Task t)
     tasks.append(new Task(t));
 }
 
-Task *Board::taskAt(int i)
+Task *Board::taskAt(uint16_t i)
 {
-    if (i >= 0 && i < tasks.count())
+    if (i < tasks.count())
     {
         return tasks[i];
     }

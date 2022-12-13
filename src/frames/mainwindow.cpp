@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->selectedBoardIndex = -1;
     connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAbout);
     connect(ui->actionNew, &QAction::triggered, this, &MainWindow::onNewBoardClick);
@@ -27,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < boards.count(); i++)
+    for (uint16_t i = 0; i < boards.count(); i++)
     {
         Board *b = boards.takeAt(i);
         delete b;
@@ -37,7 +38,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::openPreferences()
 {
-    PrefDialog dialog(this);
+    PrefDialog dialog(status, priorities, this);
     if (dialog.exec() == QDialog::DialogCode::Accepted)
     {
         this->priorities = dialog.getPriorities();
@@ -230,7 +231,7 @@ const QColor MainWindow::getStatusColor(QString uuid, QColor defaultColor)
 void MainWindow::redrawBoardList()
 {
     QListWidget *l = ui->listWidget;
-    for (int i = 0; i < l->count(); i++)
+    for (uint16_t i = 0; i < l->count(); i++)
     {
         delete l->takeItem(i);
     }
@@ -244,7 +245,7 @@ void MainWindow::redrawBoardList()
 void MainWindow::redrawTaskTree()
 {
     QTreeWidget *l = ui->treeWidget;
-    for (int i = 0; i < l->topLevelItemCount(); i++)
+    for (uint16_t i = 0; i < l->topLevelItemCount(); i++)
     {
         delete l->takeTopLevelItem(i);
     }

@@ -32,7 +32,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    int selectedBoardIndex = -1;
+    int16_t selectedBoardIndex;
     QVector<Priority> priorities;
     QVector<Status> status;
     QVector<Board*> boards;

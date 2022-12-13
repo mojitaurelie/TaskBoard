@@ -12,28 +12,34 @@ Tools::Tools()
 QColor Tools::getRandomColor()
 {
     srand(time(0));
-    int r = arc4random() % 255;
-    int g = arc4random() % 255;
-    int b = arc4random() % 255;
+#ifdef __linux__
+    uint8_t r = rand() % 255;
+    uint8_t g = rand() % 255;
+    uint8_t b = rand() % 255;
+#else
+    uint8_t r = arc4random() % 255;
+    uint8_t g = arc4random() % 255;
+    uint8_t b = arc4random() % 255;
+#endif
     return QColor(r, g, b);
 }
 
 QColor Tools::getForegroundColor(QColor background)
 {
-    int avg = background.red();
+    uint8_t avg = background.red();
     avg += background.green();
     avg += background.blue();
     avg = avg / 3;
 
-    int avg2 = background.red();
+    uint8_t avg2 = background.red();
     avg2 += background.green();
     avg2 = avg2 / 2;
 
-    int avg3 = background.red();
+    uint8_t avg3 = background.red();
     avg3 += background.blue();
     avg3 = avg3 / 2;
 
-    int avg4 = background.green();
+    uint8_t avg4 = background.green();
     avg4 += background.blue();
     avg4 = avg4 / 2;
 

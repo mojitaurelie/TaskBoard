@@ -14,7 +14,7 @@ public:
 
     const QString getName();
     void add(Task);
-    Task *taskAt(int);
+    Task *taskAt(uint16_t);
     const QVector<Task*> getTasks();
 
 private:

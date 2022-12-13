@@ -53,8 +53,8 @@ TaskDialog::TaskDialog(Task *t, QVector<Status> status, QVector<Priority> priori
 
     if (t->getPriorityUUID().length() > 0)
     {
-        int refindex = -1;
-        for (int i = 0; i < this->priorities.count(); i++)
+        int16_t refindex = -1;
+        for (uint16_t i = 0; i < this->priorities.count(); i++)
         {
             if (this->priorities[i].getUUID() == t->getPriorityUUID())
             {
@@ -69,8 +69,8 @@ TaskDialog::TaskDialog(Task *t, QVector<Status> status, QVector<Priority> priori
 
     if (t->getStatusUUID().length() > 0)
     {
-        int refindex = -1;
-        for (int i = 0; i < this->status.count(); i++)
+        int16_t refindex = -1;
+        for (uint16_t i = 0; i < this->status.count(); i++)
         {
             if (this->status[i].getUUID() == t->getStatusUUID())
             {

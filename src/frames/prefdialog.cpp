@@ -6,11 +6,28 @@
 
 #include "../tools.h"
 
-PrefDialog::PrefDialog(QWidget *parent) :
+PrefDialog::PrefDialog(QVector<Status> status, QVector<Priority> priorities, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PrefDialog)
 {
     ui->setupUi(this);
+
+    foreach (Status s, status)
+    {
+        QListWidgetItem *item = new QListWidgetItem(s.getName());
+        statusUUIDRef.append(s.getUUID());
+        setItemColor(item, s.getColor());
+        ui->statusListWidget->addItem(item);
+    }
+
+    foreach (Priority p, priorities)
+    {
+        QListWidgetItem *item = new QListWidgetItem(p.getName());
+        priorityUUIDRef.append(p.getUUID());
+        setItemColor(item, p.getColor());
+        ui->priorityListWidget->addItem(item);
+    }
+
     connect(ui->addStatusButton, &QPushButton::clicked, this, &PrefDialog::onAddStatusButtonClick);
     connect(ui->addPriorityButton, &QPushButton::clicked, this, &PrefDialog::onAddPriorityButtonClick);
     connect(ui->statusListWidget, &QListWidget::currentRowChanged, this, &PrefDialog::onItemSelectionChange);

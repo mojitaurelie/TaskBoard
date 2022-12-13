@@ -17,7 +17,7 @@ class PrefDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PrefDialog(QWidget *parent = nullptr);
+    explicit PrefDialog(QVector<Status> status, QVector<Priority> priorities, QWidget *parent = nullptr);
     ~PrefDialog();
 
     QVector<Priority> getPriorities();
