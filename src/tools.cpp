@@ -16,14 +16,14 @@ Tools::Tools()
 const QColor Tools::getRandomColor()
 {
     srand(time(0));
-#ifdef __linux__
-    uint8_t r = rand() % 255;
-    uint8_t g = rand() % 255;
-    uint8_t b = rand() % 255;
-#else
+#ifdef __APPLE__
     uint8_t r = arc4random() % 255;
     uint8_t g = arc4random() % 255;
     uint8_t b = arc4random() % 255;
+#else
+    uint8_t r = rand() % 255;
+    uint8_t g = rand() % 255;
+    uint8_t b = rand() % 255;
 #endif
     return QColor(r, g, b);
 }
