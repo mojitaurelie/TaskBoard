@@ -34,9 +34,22 @@ const QString Board::getName()
     return name;
 }
 
+void Board::setName(const QString name)
+{
+    this->name = name;
+}
+
 void Board::add(Task t)
 {
     tasks.append(new Task(t));
+}
+
+void Board::remove(uint16_t index)
+{
+    if (index < tasks.count())
+    {
+        tasks.removeAt(index);
+    }
 }
 
 Task *Board::taskAt(uint16_t i)

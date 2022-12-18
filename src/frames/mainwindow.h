@@ -29,6 +29,12 @@ private slots:
     void onNewTaskClick();
     void onBoardSelected(int i);
     void onEditTask(QTreeWidgetItem*);
+    void onRemoveBoardMenu();
+    void onRemoveTaskMenu();
+    void onEditNameBoardMenu();
+    void onEditNameTaskMenu();
+    void prepareBoardMenu(const QPoint &pos);
+    void prepareTaskMenu(const QPoint &pos);
 
 private:
     Ui::MainWindow *ui;

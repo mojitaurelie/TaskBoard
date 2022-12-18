@@ -8,6 +8,7 @@ NameDialog::NameDialog(QString label, QString defaultName, QWidget *parent) :
     ui->setupUi(this);
     this->setWindowTitle(label);
     this->defaultName = defaultName;
+    ui->lineEdit->setText(defaultName);
 }
 
 NameDialog::~NameDialog()

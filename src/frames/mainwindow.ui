@@ -27,7 +27,7 @@
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QListWidget" name="listWidget">
+       <widget class="QListWidget" name="boardList">
         <property name="minimumSize">
          <size>
           <width>250</width>
@@ -39,6 +39,9 @@
           <width>250</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -57,7 +60,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTreeWidget" name="treeWidget">
+         <widget class="QTreeWidget" name="taskList">
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>

@@ -27,9 +27,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAbout);
     connect(ui->actionNew, &QAction::triggered, this, &MainWindow::onNewBoardClick);
-    connect(ui->listWidget, &QListWidget::currentRowChanged, this, &MainWindow::onBoardSelected);
     connect(ui->actionNew_task, &QAction::triggered, this, &MainWindow::onNewTaskClick);
-    connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onEditTask);
+    connect(ui->boardList, &QListWidget::currentRowChanged, this, &MainWindow::onBoardSelected);
+    connect(ui->boardList, &QListWidget::customContextMenuRequested, this, &MainWindow::prepareBoardMenu);
+    connect(ui->taskList, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onEditTask);
+    connect(ui->taskList, &QTreeWidget::customContextMenuRequested, this, &MainWindow::prepareTaskMenu);
+    ui->boardList->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->taskList->setContextMenuPolicy(Qt::CustomContextMenu);
 }
 
 MainWindow::~MainWindow()
@@ -59,6 +63,44 @@ void MainWindow::openAbout()
     dialog.exec();
 }
 
+void MainWindow::prepareBoardMenu(const QPoint &pos)
+{
+    if (ui->boardList->selectedItems().length() == 1) {
+        QMenu menu(this);
+
+        QAction *renameAction = new QAction(tr("Rename this board"), this);
+        connect(renameAction, &QAction::triggered, this, &MainWindow::onEditNameBoardMenu);
+        menu.addAction(renameAction);
+
+        menu.addSeparator();
+
+        QAction *deleteAction = new QAction(tr("Delete this board"), this);
+        connect(deleteAction, &QAction::triggered, this, &MainWindow::onRemoveBoardMenu);
+        menu.addAction(deleteAction);
+
+        menu.exec(ui->boardList->mapToGlobal(pos));
+    }
+}
+
+void MainWindow::prepareTaskMenu(const QPoint &pos)
+{
+    if (ui->taskList->selectedItems().length() == 1) {
+        QMenu menu(this);
+
+        QAction *renameAction = new QAction(tr("Edit the task"), this);
+        connect(renameAction, &QAction::triggered, this, &MainWindow::onEditNameTaskMenu);
+        menu.addAction(renameAction);
+
+        menu.addSeparator();
+
+        QAction *deleteAction = new QAction(tr("Delete from the board"), this);
+        connect(deleteAction, &QAction::triggered, this, &MainWindow::onRemoveTaskMenu);
+        menu.addAction(deleteAction);
+
+        menu.exec(ui->taskList->mapToGlobal(pos));
+    }
+}
+
 void MainWindow::onNewBoardClick()
 {
     NameDialog dialog("Create a board", "New empty board", this);
@@ -68,7 +110,7 @@ void MainWindow::onNewBoardClick()
         Board *b = new Board(name);
         boards.append(b);
         QListWidgetItem *item = new QListWidgetItem(name);
-        ui->listWidget->addItem(item);
+        ui->boardList->addItem(item);
         save();
     }
 }
@@ -85,27 +127,33 @@ void MainWindow::onNewTaskClick()
             b->add(t);
             QTreeWidgetItem *item = new QTreeWidgetItem();
             item->setText(0, t.getTitle());
-            item->setText(1, getStatusLabel(t.getStatusUUID()));
-            item->setText(2, getPriorityLabel(t.getPriorityUUID()));
             item->setText(3, t.getExpectedFor().toString());
 
-            QBrush bgColor = item->background(1);
-            QBrush fgColor = item->foreground(1);
-            bgColor.setColor(getStatusColor(t.getStatusUUID(), bgColor.color()));
-            bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-            fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-            item->setBackground(1, bgColor);
-            item->setForeground(1, fgColor);
+            if (!t.getStatusUUID().isEmpty())
+            {
+                item->setText(1, getStatusLabel(t.getStatusUUID()));
+                QBrush bgColor = item->background(1);
+                QBrush fgColor = item->foreground(1);
+                bgColor.setColor(getStatusColor(t.getStatusUUID(), bgColor.color()));
+                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                item->setBackground(1, bgColor);
+                item->setForeground(1, fgColor);
+            }
 
-            bgColor = item->background(2);
-            fgColor = item->foreground(2);
-            bgColor.setColor(getPriorityColor(t.getPriorityUUID(), bgColor.color()));
-            bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-            fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-            item->setBackground(2, bgColor);
-            item->setForeground(2, fgColor);
+            if (!t.getPriorityUUID().isEmpty())
+            {
+                item->setText(2, getPriorityLabel(t.getPriorityUUID()));
+                QBrush bgColor = item->background(2);
+                QBrush fgColor = item->foreground(2);
+                bgColor.setColor(getPriorityColor(t.getPriorityUUID(), bgColor.color()));
+                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                item->setBackground(2, bgColor);
+                item->setForeground(2, fgColor);
+            }
 
-            ui->treeWidget->addTopLevelItem(item);
+            ui->taskList->addTopLevelItem(item);
             save();
         }
     }
@@ -133,7 +181,7 @@ void MainWindow::onEditTask(QTreeWidgetItem *item)
     if (item != nullptr && selectedBoardIndex > -1)
     {
         Board *b = boards[selectedBoardIndex];
-        int row = ui->treeWidget->indexOfTopLevelItem(item);
+        int row = ui->taskList->indexOfTopLevelItem(item);
         Task *t = b->taskAt(row);
         if (t != nullptr)
         {
@@ -143,28 +191,92 @@ void MainWindow::onEditTask(QTreeWidgetItem *item)
                 Task editedTask = dialog.getTask();
                 t->update(editedTask);
                 item->setText(0, editedTask.getTitle());
-                item->setText(1, getStatusLabel(editedTask.getStatusUUID()));
-                item->setText(2, getPriorityLabel(editedTask.getPriorityUUID()));
                 item->setText(3, editedTask.getExpectedFor().toString());
 
-                QBrush bgColor = item->background(1);
-                QBrush fgColor = item->foreground(1);
-                bgColor.setColor(getStatusColor(editedTask.getStatusUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(1, bgColor);
-                item->setForeground(1, fgColor);
+                if (!editedTask.getStatusUUID().isEmpty())
+                {
+                    item->setText(1, getStatusLabel(editedTask.getStatusUUID()));
+                    QBrush bgColor = item->background(1);
+                    QBrush fgColor = item->foreground(1);
+                    bgColor.setColor(getStatusColor(editedTask.getStatusUUID(), bgColor.color()));
+                    bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                    fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                    item->setBackground(1, bgColor);
+                    item->setForeground(1, fgColor);
+                }
 
-                bgColor = item->background(2);
-                fgColor = item->foreground(2);
-                bgColor.setColor(getPriorityColor(editedTask.getPriorityUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(2, bgColor);
-                item->setForeground(2, fgColor);
+                if (!editedTask.getPriorityUUID().isEmpty())
+                {
+                    item->setText(2, getPriorityLabel(editedTask.getPriorityUUID()));
+                    QBrush bgColor = item->background(2);
+                    QBrush fgColor = item->foreground(2);
+                    bgColor.setColor(getPriorityColor(editedTask.getPriorityUUID(), bgColor.color()));
+                    bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                    fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                    item->setBackground(2, bgColor);
+                    item->setForeground(2, fgColor);
+                }
+
                 save();
             }
         }
+    }
+}
+
+void MainWindow::onRemoveBoardMenu()
+{
+    if (selectedBoardIndex > -1)
+    {
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Delete a board", "Do you want to delete this board?");
+        if (result == QMessageBox::Yes)
+        {
+            boards.removeAt(selectedBoardIndex);
+            delete ui->boardList->takeItem(selectedBoardIndex);
+            selectedBoardIndex = -1;
+            redrawTaskTree();
+            save();
+        }
+    }
+}
+
+void MainWindow::onRemoveTaskMenu()
+{
+    if (selectedBoardIndex > -1 && ui->taskList->selectedItems().length() == 1)
+    {
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Delete a task", "Do you want to delete this task?");
+        if (result == QMessageBox::Yes)
+        {
+            int16_t i = ui->taskList->indexOfTopLevelItem(ui->taskList->currentItem());
+            Board *b = boards[selectedBoardIndex];
+            b->remove(i);
+            redrawTaskTree();
+            save();
+        }
+    }
+}
+
+void MainWindow::onEditNameBoardMenu()
+{
+    if (selectedBoardIndex > -1)
+    {
+        Board *b = boards.at(selectedBoardIndex);
+        NameDialog dialog("Edit board name", b->getName(), this);
+        if (dialog.exec() == QDialog::DialogCode::Accepted)
+        {
+            QString newName= dialog.getChoosenName();
+            b->setName(newName);
+            ui->boardList->item(selectedBoardIndex)->setText(newName);
+            ui->label->setText(newName);
+            save();
+        }
+    }
+}
+
+void MainWindow::onEditNameTaskMenu()
+{
+    if (selectedBoardIndex > -1 && ui->taskList->selectedItems().length() == 1)
+    {
+        onEditTask(ui->taskList->currentItem());
     }
 }
 
@@ -176,13 +288,16 @@ void MainWindow::init()
         if (Tools::readSaveFile(doc))
         {
             QJsonObject save = doc.object();
-            for (QJsonValue value : save[PRIORITIES_KEY].toArray()) {
+            QJsonArray jsonPriorities = save[PRIORITIES_KEY].toArray();
+            QJsonArray jsonStatus = save[STATUS_KEY].toArray();
+            QJsonArray jsonBoards = save[BOARDS_KEY].toArray();
+            for (QJsonValueRef value : jsonPriorities) {
                 priorities.append(Priority(value.toObject()));
             }
-            for (QJsonValue value : save[STATUS_KEY].toArray()) {
+            for (QJsonValueRef value : jsonStatus) {
                 status.append(Status(value.toObject()));
             }
-            for (QJsonValue value : save[BOARDS_KEY].toArray()) {
+            for (QJsonValueRef value : jsonBoards) {
                 boards.append(new Board(value.toObject()));
             }
             redrawBoardList();
@@ -289,7 +404,7 @@ const QJsonDocument MainWindow::getJsonSave()
 
 void MainWindow::redrawBoardList()
 {
-    QListWidget *l = ui->listWidget;
+    QListWidget *l = ui->boardList;
     uint16_t itemCount = l->count();
     for (int16_t i = itemCount; i >= 0; i--)
     {
@@ -304,7 +419,7 @@ void MainWindow::redrawBoardList()
 
 void MainWindow::redrawTaskTree()
 {
-    QTreeWidget *l = ui->treeWidget;
+    QTreeWidget *l = ui->taskList;
     uint16_t itemCount = l->topLevelItemCount();
     for (int16_t i = itemCount; i >= 0; i--)
     {
@@ -317,27 +432,33 @@ void MainWindow::redrawTaskTree()
         {
             QTreeWidgetItem *item = new QTreeWidgetItem();
             item->setText(0, t->getTitle());
-            item->setText(1, getStatusLabel(t->getStatusUUID()));
-            item->setText(2, getPriorityLabel(t->getPriorityUUID()));
             item->setText(3, t->getExpectedFor().toString());
 
-            QBrush bgColor = item->background(1);
-            QBrush fgColor = item->foreground(1);
-            bgColor.setColor(getStatusColor(t->getStatusUUID(), bgColor.color()));
-            bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-            fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-            item->setBackground(1, bgColor);
-            item->setForeground(1, fgColor);
+            if (!t->getStatusUUID().isEmpty())
+            {
+                item->setText(1, getStatusLabel(t->getStatusUUID()));
+                QBrush bgColor = item->background(1);
+                QBrush fgColor = item->foreground(1);
+                bgColor.setColor(getStatusColor(t->getStatusUUID(), bgColor.color()));
+                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                item->setBackground(1, bgColor);
+                item->setForeground(1, fgColor);
+            }
 
-            bgColor = item->background(2);
-            fgColor = item->foreground(2);
-            bgColor.setColor(getPriorityColor(t->getPriorityUUID(), bgColor.color()));
-            bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-            fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-            item->setBackground(2, bgColor);
-            item->setForeground(2, fgColor);
+            if (!t->getPriorityUUID().isEmpty())
+            {
+                item->setText(2, getPriorityLabel(t->getPriorityUUID()));
+                QBrush bgColor = item->background(2);
+                QBrush fgColor = item->foreground(2);
+                bgColor.setColor(getPriorityColor(t->getPriorityUUID(), bgColor.color()));
+                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+                item->setBackground(2, bgColor);
+                item->setForeground(2, fgColor);
+            }
 
-            ui->treeWidget->addTopLevelItem(item);
+            ui->taskList->addTopLevelItem(item);
         }
     }
 

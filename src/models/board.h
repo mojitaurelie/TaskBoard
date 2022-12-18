@@ -15,7 +15,9 @@ public:
     ~Board();
 
     const QString getName();
+    void setName(const QString name);
     void add(Task);
+    void remove(uint16_t index);
     Task *taskAt(uint16_t);
     const QVector<Task*> getTasks();
 
