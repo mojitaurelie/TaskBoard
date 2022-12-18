@@ -47,10 +47,10 @@ PrefDialog::~PrefDialog()
 
 QVector<Priority> PrefDialog::getPriorities()
 {
-    int count = ui->priorityListWidget->count();
+    uint16_t count = ui->priorityListWidget->count();
     QVector<Priority> res;
 
-    for (int i = 0; i < count; i++)
+    for (uint16_t i = 0; i < count; i++)
     {
         QListWidgetItem *item = ui->priorityListWidget->item(i);
         Priority p(priorityUUIDRef[i], item->text(), item->background().color());
@@ -62,10 +62,10 @@ QVector<Priority> PrefDialog::getPriorities()
 
 QVector<Status> PrefDialog::getStatus()
 {
-    int count = ui->statusListWidget->count();
+    uint16_t count = ui->statusListWidget->count();
     QVector<Status> res;
 
-    for (int i = 0; i < count; i++)
+    for (uint16_t i = 0; i < count; i++)
     {
         QListWidgetItem *item = ui->statusListWidget->item(i);
         Status s(statusUUIDRef[i], item->text(), item->background().color());

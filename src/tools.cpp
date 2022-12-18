@@ -3,13 +3,17 @@
 #define BRIGHTNESS_THRESHOLD 170
 #define WHITECOLOR 240
 #define BLACKCOLOR 15
+#define FILENAME "data.json"
+
+#include <QStandardPaths>
+#include <QDir>
 
 Tools::Tools()
 {
 
 }
 
-QColor Tools::getRandomColor()
+const QColor Tools::getRandomColor()
 {
     srand(time(0));
 #ifdef __linux__
@@ -24,24 +28,12 @@ QColor Tools::getRandomColor()
     return QColor(r, g, b);
 }
 
-QColor Tools::getForegroundColor(QColor background)
+const QColor Tools::getForegroundColor(QColor background)
 {
-    uint8_t avg = background.red();
-    avg += background.green();
-    avg += background.blue();
-    avg = avg / 3;
-
-    uint8_t avg2 = background.red();
-    avg2 += background.green();
-    avg2 = avg2 / 2;
-
-    uint8_t avg3 = background.red();
-    avg3 += background.blue();
-    avg3 = avg3 / 2;
-
-    uint8_t avg4 = background.green();
-    avg4 += background.blue();
-    avg4 = avg4 / 2;
+    uint8_t avg = (background.red() + background.green() + background.blue()) / 3;
+    uint8_t avg2 = (background.red() + background.green()) / 2;
+    uint8_t avg3 = (background.red() + background.blue()) / 2;
+    uint8_t avg4 = (background.green() + background.blue()) / 2;
 
     if (avg < BRIGHTNESS_THRESHOLD && avg2 < BRIGHTNESS_THRESHOLD && avg3 < BRIGHTNESS_THRESHOLD && avg4 < BRIGHTNESS_THRESHOLD)
     {
@@ -51,4 +43,55 @@ QColor Tools::getForegroundColor(QColor background)
     {
         return QColor(BLACKCOLOR, BLACKCOLOR, BLACKCOLOR);
     }
+}
+
+const QString Tools::getSaveFilePath() {
+    QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (!QDir(path).exists())
+    {
+        QDir().mkpath(path);
+    }
+
+    path += "/data/";
+    if (!QDir(path).exists())
+    {
+        QDir().mkpath(path);
+    }
+    path += FILENAME;
+    return QDir::cleanPath(path);
+}
+
+bool Tools::isSaveFileExist()
+{
+    return QFile::exists(Tools::getSaveFilePath());
+}
+
+bool Tools::writeSaveToFile(QJsonDocument doc)
+{
+    bool success = false;
+    QFile *f = new QFile(getSaveFilePath());
+    if (f->open(QIODevice::WriteOnly))
+    {
+        f->write(doc.toJson());
+        f->close();
+        success = true;
+    }
+    delete f;
+    return success;
+}
+
+bool Tools::readSaveFile(QJsonDocument &doc) {
+    QFile* file = new QFile(getSaveFilePath());
+    if (!file->open(QIODevice::ReadOnly))
+    {
+        file->close();
+        delete file;
+        return false;
+    }
+    QString json = QString(file->readAll());
+    file->close();
+    delete file;
+
+    doc = QJsonDocument::fromJson(json.toUtf8());
+    return true;
 }

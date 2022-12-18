@@ -1,8 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define PRIORITIES_KEY "priorities"
+#define STATUS_KEY "status"
+#define BOARDS_KEY "boards"
+
 #include <QUuid>
 #include <QColor>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMessageBox>
 
 #include "prefdialog.h"
 #include "aboutdialog.h"
@@ -15,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    init();
     this->selectedBoardIndex = -1;
     connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAbout);
@@ -22,8 +30,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->listWidget, &QListWidget::currentRowChanged, this, &MainWindow::onBoardSelected);
     connect(ui->actionNew_task, &QAction::triggered, this, &MainWindow::onNewTaskClick);
     connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onEditTask);
-    this->priorities = defaultPriorities();
-    this->status = defaultStatus();
 }
 
 MainWindow::~MainWindow()
@@ -43,6 +49,7 @@ void MainWindow::openPreferences()
     {
         this->priorities = dialog.getPriorities();
         this->status = dialog.getStatus();
+        save();
     }
 }
 
@@ -62,6 +69,7 @@ void MainWindow::onNewBoardClick()
         boards.append(b);
         QListWidgetItem *item = new QListWidgetItem(name);
         ui->listWidget->addItem(item);
+        save();
     }
 }
 
@@ -98,6 +106,7 @@ void MainWindow::onNewTaskClick()
             item->setForeground(2, fgColor);
 
             ui->treeWidget->addTopLevelItem(item);
+            save();
         }
     }
 }
@@ -153,9 +162,36 @@ void MainWindow::onEditTask(QTreeWidgetItem *item)
                 fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
                 item->setBackground(2, bgColor);
                 item->setForeground(2, fgColor);
+                save();
             }
         }
     }
+}
+
+void MainWindow::init()
+{
+    if (Tools::isSaveFileExist())
+    {
+        QJsonDocument doc;
+        if (Tools::readSaveFile(doc))
+        {
+            QJsonObject save = doc.object();
+            for (QJsonValue value : save[PRIORITIES_KEY].toArray()) {
+                priorities.append(Priority(value.toObject()));
+            }
+            for (QJsonValue value : save[STATUS_KEY].toArray()) {
+                status.append(Status(value.toObject()));
+            }
+            for (QJsonValue value : save[BOARDS_KEY].toArray()) {
+                boards.append(new Board(value.toObject()));
+            }
+            redrawBoardList();
+            return;
+        }
+    }
+    this->priorities = defaultPriorities();
+    this->status = defaultStatus();
+    save();
 }
 
 QVector<Priority> MainWindow::defaultPriorities()
@@ -228,10 +264,34 @@ const QColor MainWindow::getStatusColor(QString uuid, QColor defaultColor)
     return color;
 }
 
+const QJsonDocument MainWindow::getJsonSave()
+{
+    QJsonDocument doc;
+    QJsonObject obj;
+    QJsonArray jsonPriorities;
+    foreach (Priority p, this->priorities) {
+        jsonPriorities.append(p.toJson());
+    }
+    QJsonArray jsonStatus;
+    foreach (Status s, this->status) {
+        jsonStatus.append(s.toJson());
+    }
+    QJsonArray jsonBoards;
+    foreach (Board *b, this->boards) {
+        jsonBoards.append(b->toJson());
+    }
+    obj[PRIORITIES_KEY] = jsonPriorities;
+    obj[STATUS_KEY] = jsonStatus;
+    obj[BOARDS_KEY] = jsonBoards;
+    doc.setObject(obj);
+    return doc;
+}
+
 void MainWindow::redrawBoardList()
 {
     QListWidget *l = ui->listWidget;
-    for (uint16_t i = 0; i < l->count(); i++)
+    uint16_t itemCount = l->count();
+    for (int16_t i = itemCount; i >= 0; i--)
     {
         delete l->takeItem(i);
     }
@@ -245,7 +305,8 @@ void MainWindow::redrawBoardList()
 void MainWindow::redrawTaskTree()
 {
     QTreeWidget *l = ui->treeWidget;
-    for (uint16_t i = 0; i < l->topLevelItemCount(); i++)
+    uint16_t itemCount = l->topLevelItemCount();
+    for (int16_t i = itemCount; i >= 0; i--)
     {
         delete l->takeTopLevelItem(i);
     }
@@ -280,5 +341,14 @@ void MainWindow::redrawTaskTree()
         }
     }
 
+}
+
+void MainWindow::save()
+{
+    QJsonDocument doc = getJsonSave();
+    if (!Tools::writeSaveToFile(doc))
+    {
+        QMessageBox::critical(this, "Failed to save", "Failed to write the save to the file", QMessageBox::StandardButton::Ok);
+    }
 }
 

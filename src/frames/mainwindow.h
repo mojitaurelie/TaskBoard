@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTreeWidgetItem>
 #include <QBrush>
+#include <QJsonDocument>
 
 #include "../models/priority.h"
 #include "../models/status.h"
@@ -32,6 +33,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    void init();
+
     int16_t selectedBoardIndex;
     QVector<Priority> priorities;
     QVector<Status> status;
@@ -46,7 +49,10 @@ private:
     const QColor getPriorityColor(QString uuid, QColor defaultColor);
     const QColor getStatusColor(QString uuid, QColor defaultColor);
 
+    const QJsonDocument getJsonSave();
+
     void redrawBoardList();
     void redrawTaskTree();
+    void save();
 };
 #endif // MAINWINDOW_H
