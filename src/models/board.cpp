@@ -14,7 +14,8 @@ Board::Board(QString name)
 Board::Board(QJsonObject obj)
 {
     this->name = obj[NAME_KEY].toString();
-    foreach (QJsonValue value, obj[TASKS_KEY].toArray()) {
+    QJsonArray jsonTasks = obj[TASKS_KEY].toArray();
+    for (QJsonValue value : jsonTasks) {
         Task *t = new Task(value.toObject());
         this->tasks.append(t);
     }
