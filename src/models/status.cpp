@@ -15,7 +15,7 @@ Status::Status(QJsonObject obj)
 {
     this->uuid = obj[UUID_KEY].toString();
     this->name = obj[NAME_KEY].toString();
-    this->color = QColor::fromString(obj[COLOR_KEY].toString());
+    this->color = QColor(obj[COLOR_KEY].toString());
 }
 
 const QString Status::getName()
