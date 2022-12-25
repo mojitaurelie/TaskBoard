@@ -4,8 +4,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-win32:VERSION = 0.1.0.0 # major.minor.patch.build
-else:VERSION = 0.1.0    # major.minor.patch
+win32:VERSION = 0.1.1.0 # major.minor.patch.build
+else:VERSION = 0.1.1    # major.minor.patch
 
 DEFINES += APP_VERSION=\"\\\"$${VERSION}\\\"\"
 DEFINES += APP_NAME=\"\\\"TaskBoard\\\"\"

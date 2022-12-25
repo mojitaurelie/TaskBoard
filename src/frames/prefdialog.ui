@@ -124,6 +124,9 @@
        <height>21</height>
       </rect>
      </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QToolButton" name="colorStatusButton">
      <property name="enabled">
@@ -145,7 +148,7 @@
      <property name="geometry">
       <rect>
        <x>570</x>
-       <y>300</y>
+       <y>310</y>
        <width>41</width>
        <height>32</height>
       </rect>
@@ -161,9 +164,9 @@
      <property name="geometry">
       <rect>
        <x>520</x>
-       <y>300</y>
+       <y>310</y>
        <width>41</width>
-       <height>32</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -213,6 +216,9 @@
        <height>21</height>
       </rect>
      </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QListWidget" name="priorityListWidget">
      <property name="geometry">
@@ -257,7 +263,7 @@
      <property name="geometry">
       <rect>
        <x>570</x>
-       <y>300</y>
+       <y>310</y>
        <width>41</width>
        <height>32</height>
       </rect>
@@ -273,7 +279,7 @@
      <property name="geometry">
       <rect>
        <x>520</x>
-       <y>300</y>
+       <y>310</y>
        <width>41</width>
        <height>32</height>
       </rect>

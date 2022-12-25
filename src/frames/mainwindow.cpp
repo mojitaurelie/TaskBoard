@@ -24,6 +24,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     init();
     this->selectedBoardIndex = -1;
+    // Change "name" column size
+    ui->taskList->header()->resizeSection(0, 520);
+    // Change "status" column size
+    ui->taskList->header()->resizeSection(1, 150);
     connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::openAbout);
     connect(ui->actionNew, &QAction::triggered, this, &MainWindow::onNewBoardClick);
@@ -54,6 +58,7 @@ void MainWindow::openPreferences()
         this->priorities = dialog.getPriorities();
         this->status = dialog.getStatus();
         save();
+        redrawTaskTree();
     }
 }
 
@@ -126,33 +131,7 @@ void MainWindow::onNewTaskClick()
             Board *b = boards[selectedBoardIndex];
             b->add(t);
             QTreeWidgetItem *item = new QTreeWidgetItem();
-            item->setText(0, t.getTitle());
-            item->setText(3, t.getExpectedFor().toString());
-
-            if (!t.getStatusUUID().isEmpty())
-            {
-                item->setText(1, getStatusLabel(t.getStatusUUID()));
-                QBrush bgColor = item->background(1);
-                QBrush fgColor = item->foreground(1);
-                bgColor.setColor(getStatusColor(t.getStatusUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(1, bgColor);
-                item->setForeground(1, fgColor);
-            }
-
-            if (!t.getPriorityUUID().isEmpty())
-            {
-                item->setText(2, getPriorityLabel(t.getPriorityUUID()));
-                QBrush bgColor = item->background(2);
-                QBrush fgColor = item->foreground(2);
-                bgColor.setColor(getPriorityColor(t.getPriorityUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(2, bgColor);
-                item->setForeground(2, fgColor);
-            }
-
+            updateTaskRow(item, t);
             ui->taskList->addTopLevelItem(item);
             save();
         }
@@ -190,33 +169,7 @@ void MainWindow::onEditTask(QTreeWidgetItem *item)
             {
                 Task editedTask = dialog.getTask();
                 t->update(editedTask);
-                item->setText(0, editedTask.getTitle());
-                item->setText(3, editedTask.getExpectedFor().toString());
-
-                if (!editedTask.getStatusUUID().isEmpty())
-                {
-                    item->setText(1, getStatusLabel(editedTask.getStatusUUID()));
-                    QBrush bgColor = item->background(1);
-                    QBrush fgColor = item->foreground(1);
-                    bgColor.setColor(getStatusColor(editedTask.getStatusUUID(), bgColor.color()));
-                    bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                    fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                    item->setBackground(1, bgColor);
-                    item->setForeground(1, fgColor);
-                }
-
-                if (!editedTask.getPriorityUUID().isEmpty())
-                {
-                    item->setText(2, getPriorityLabel(editedTask.getPriorityUUID()));
-                    QBrush bgColor = item->background(2);
-                    QBrush fgColor = item->foreground(2);
-                    bgColor.setColor(getPriorityColor(editedTask.getPriorityUUID(), bgColor.color()));
-                    bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                    fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                    item->setBackground(2, bgColor);
-                    item->setForeground(2, fgColor);
-                }
-
+                updateTaskRow(item, editedTask);
                 save();
             }
         }
@@ -312,6 +265,7 @@ void MainWindow::init()
 QVector<Priority> MainWindow::defaultPriorities()
 {
     QVector<Priority> res;
+    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "None", QColor("#d9d9d9")));
     res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Low", QColor("#309db0")));
     res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Medium", QColor("#b08e30")));
     res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "High", QColor("#b04330")));
@@ -402,6 +356,40 @@ const QJsonDocument MainWindow::getJsonSave()
     return doc;
 }
 
+void MainWindow::updateTaskRow(QTreeWidgetItem *item, Task t)
+{
+    item->setText(0, t.getTitle());
+    item->setToolTip(0, t.getDescription());
+    item->setText(3, t.getExpectedFor().toString());
+
+    if (!t.getStatusUUID().isEmpty())
+    {
+        item->setText(1, getStatusLabel(t.getStatusUUID()));
+        QBrush bgColor = item->background(1);
+        QBrush fgColor = item->foreground(1);
+        bgColor.setColor(getStatusColor(t.getStatusUUID(), bgColor.color()));
+        bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+        fgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        item->setBackground(1, bgColor);
+        item->setForeground(1, fgColor);
+    }
+
+    if (!t.getPriorityUUID().isEmpty())
+    {
+        item->setText(2, getPriorityLabel(t.getPriorityUUID()));
+        QBrush bgColor = item->background(2);
+        QBrush fgColor = item->foreground(2);
+        bgColor.setColor(getPriorityColor(t.getPriorityUUID(), bgColor.color()));
+        bgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
+        fgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        item->setBackground(2, bgColor);
+        item->setForeground(2, fgColor);
+    }
+}
+
+
 void MainWindow::redrawBoardList()
 {
     QListWidget *l = ui->boardList;
@@ -431,33 +419,7 @@ void MainWindow::redrawTaskTree()
         foreach (Task *t, b->getTasks())
         {
             QTreeWidgetItem *item = new QTreeWidgetItem();
-            item->setText(0, t->getTitle());
-            item->setText(3, t->getExpectedFor().toString());
-
-            if (!t->getStatusUUID().isEmpty())
-            {
-                item->setText(1, getStatusLabel(t->getStatusUUID()));
-                QBrush bgColor = item->background(1);
-                QBrush fgColor = item->foreground(1);
-                bgColor.setColor(getStatusColor(t->getStatusUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(1, bgColor);
-                item->setForeground(1, fgColor);
-            }
-
-            if (!t->getPriorityUUID().isEmpty())
-            {
-                item->setText(2, getPriorityLabel(t->getPriorityUUID()));
-                QBrush bgColor = item->background(2);
-                QBrush fgColor = item->foreground(2);
-                bgColor.setColor(getPriorityColor(t->getPriorityUUID(), bgColor.color()));
-                bgColor.setStyle(Qt::BrushStyle::SolidPattern);
-                fgColor.setColor(Tools::getForegroundColor(bgColor.color()));
-                item->setBackground(2, bgColor);
-                item->setForeground(2, fgColor);
-            }
-
+            updateTaskRow(item, *t);
             ui->taskList->addTopLevelItem(item);
         }
     }

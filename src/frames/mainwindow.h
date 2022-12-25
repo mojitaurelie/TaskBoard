@@ -57,6 +57,7 @@ private:
 
     const QJsonDocument getJsonSave();
 
+    void updateTaskRow(QTreeWidgetItem *item, Task t);
     void redrawBoardList();
     void redrawTaskTree();
     void save();
