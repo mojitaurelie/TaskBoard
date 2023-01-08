@@ -11,6 +11,7 @@ public:
     Task(QString title, QString description, QDate expectedFor, QString priorityUUID, QString statusUUID);
     Task(QJsonObject);
 
+    const QString getUuid();
     const QString getTitle();
     const QString getDescription();
     const QDate getExpectedFor();
@@ -21,6 +22,7 @@ public:
     void update(Task);
 
 private:
+    QString uuid;
     QString title;
     QString description;
     QDate expectedFor;

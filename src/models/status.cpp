@@ -4,6 +4,8 @@
 #define NAME_KEY "name"
 #define COLOR_KEY "color"
 
+#include <QUuid>
+
 Status::Status(QString uuid, QString name, QColor color)
 {
     this->uuid = uuid;
@@ -13,9 +15,10 @@ Status::Status(QString uuid, QString name, QColor color)
 
 Status::Status(QJsonObject obj)
 {
-    this->uuid = obj[UUID_KEY].toString();
-    this->name = obj[NAME_KEY].toString();
-    this->color = QColor(obj[COLOR_KEY].toString());
+    QUuid uuid = QUuid::createUuid();
+    this->uuid = obj[UUID_KEY].toString(uuid.toString(QUuid::WithoutBraces));
+    this->name = obj[NAME_KEY].toString("!Missing name!");
+    this->color = QColor(obj[COLOR_KEY].toString("#ffffff"));
 }
 
 const QString Status::getName()

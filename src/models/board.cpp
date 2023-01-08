@@ -2,18 +2,24 @@
 
 #define NAME_KEY "name"
 #define TASKS_KEY "tasks"
+#define UUID_KEY "uuid"
 
 #include <QJsonArray>
 #include <QJsonValue>
+#include <QUuid>
 
 Board::Board(QString name)
 {
+    QUuid uuid = QUuid::createUuid();
+    this->uuid = uuid.toString(QUuid::WithoutBraces);
     this->name = name;
 }
 
 Board::Board(QJsonObject obj)
 {
-    this->name = obj[NAME_KEY].toString();
+    QUuid uuid = QUuid::createUuid();
+    this->uuid = obj[UUID_KEY].toString(uuid.toString(QUuid::WithoutBraces));
+    this->name = obj[NAME_KEY].toString("!Missing name!");
     QJsonArray jsonTasks = obj[TASKS_KEY].toArray();
     for (QJsonValue value : jsonTasks) {
         Task *t = new Task(value.toObject());
@@ -28,6 +34,11 @@ Board::~Board()
         Task *t = tasks.takeAt(i);
         delete t;
     }
+}
+
+const QString Board::getUuid()
+{
+    return uuid;
 }
 
 const QString Board::getName()

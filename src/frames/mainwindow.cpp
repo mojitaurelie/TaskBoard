@@ -265,19 +265,19 @@ void MainWindow::init()
 QVector<Priority> MainWindow::defaultPriorities()
 {
     QVector<Priority> res;
-    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "None", QColor("#d9d9d9")));
-    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Low", QColor("#309db0")));
-    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Medium", QColor("#b08e30")));
-    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "High", QColor("#b04330")));
+    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "None", QColor(217, 217, 217)));
+    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Low", QColor(48, 157, 176)));
+    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "Medium", QColor(176, 142, 48)));
+    res.append(Priority(QUuid::createUuid().toString(QUuid::WithoutBraces), "High", QColor(176, 67, 48)));
     return res;
 }
 
 QVector<Status> MainWindow::defaultStatus()
 {
     QVector<Status> res;
-    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "To Do", QColor("#8f8f8f")));
-    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "Working on", QColor("#5f30b0")));
-    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "Completed", QColor("#30b049")));
+    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "To Do", QColor(143, 143, 143)));
+    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "Working on", QColor(95, 48, 176)));
+    res.append(Status(QUuid::createUuid().toString(QUuid::WithoutBraces), "Completed", QColor(48, 176, 73)));
     return res;
 }
 
@@ -361,6 +361,21 @@ void MainWindow::updateTaskRow(QTreeWidgetItem *item, Task t)
     item->setText(0, t.getTitle());
     item->setToolTip(0, t.getDescription());
     item->setText(3, t.getExpectedFor().toString());
+
+    if (t.getExpectedFor() < QDate::currentDate())
+    {
+        QBrush fgColor = item->foreground(3);
+        fgColor.setColor(QColor(176, 67, 48));
+        fgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        item->setForeground(3, fgColor);
+    }
+    else if (t.getExpectedFor() == QDate::currentDate())
+    {
+        QBrush fgColor = item->foreground(3);
+        fgColor.setColor(QColor(176, 142, 48));
+        fgColor.setStyle(Qt::BrushStyle::SolidPattern);
+        item->setForeground(3, fgColor);
+    }
 
     if (!t.getStatusUUID().isEmpty())
     {

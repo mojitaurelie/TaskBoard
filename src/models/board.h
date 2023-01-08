@@ -14,6 +14,7 @@ public:
     Board(QJsonObject);
     ~Board();
 
+    const QString getUuid();
     const QString getName();
     void setName(const QString name);
     void add(Task);
@@ -25,6 +26,7 @@ public:
 
 private:
     QVector<Task*> tasks;
+    QString uuid;
     QString name;
 
 };

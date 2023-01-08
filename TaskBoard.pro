@@ -1,11 +1,11 @@
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
 CONFIG += c++17
 
-win32:VERSION = 0.1.1.0 # major.minor.patch.build
-else:VERSION = 0.1.1    # major.minor.patch
+win32:VERSION = 0.2.0.0 # major.minor.patch.build
+else:VERSION = 0.2.0    # major.minor.patch
 
 DEFINES += APP_VERSION=\"\\\"$${VERSION}\\\"\"
 DEFINES += APP_NAME=\"\\\"TaskBoard\\\"\"
@@ -74,6 +74,7 @@ SOURCES += \
     src/frames/mainwindow.cpp \
     src/frames/namedialog.cpp \
     src/frames/prefdialog.cpp \
+    src/models/filter.cpp \
     src/models/priority.cpp \
     src/models/status.cpp \
     src/models/task.cpp \
@@ -86,6 +87,7 @@ HEADERS += \
     src/frames/mainwindow.h \
     src/frames/namedialog.h \
     src/frames/prefdialog.h \
+    src/models/filter.h \
     src/models/priority.h \
     src/models/status.h \
     src/models/task.h \
